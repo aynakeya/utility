@@ -60,6 +60,21 @@ func (q *Queue[T]) Pop() T {
 	return elem
 }
 
+func (q *Queue[T]) Elems() []T {
+	q.lock.Lock()
+	defer q.lock.Unlock()
+	elems := make([]T, q.count)
+	if q.front < q.back {
+		copy(elems, q.queue[q.front:q.back])
+	} else {
+		// copy end of queue to the front
+		n := copy(elems, q.queue[q.front:])
+		// copy rest of element
+		copy(elems[n:], q.queue[:q.back])
+	}
+	return elems
+}
+
 // Push push the element at the back the queue
 func (q *Queue[T]) Push(elem T) {
 	q.lock.Lock()

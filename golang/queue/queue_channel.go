@@ -1,7 +1,7 @@
 package queue
 
 type QueueChannel[T any] struct {
-	Chan  chan T
+	ch    chan T
 	input chan int
 	size  int
 	cache *Queue[T]
@@ -9,7 +9,7 @@ type QueueChannel[T any] struct {
 
 func NewQueueChannel[T any](size int) *QueueChannel[T] {
 	qc := &QueueChannel[T]{
-		Chan:  make(chan T, size),
+		ch:    make(chan T, size),
 		input: make(chan int, 1),
 		size:  size,
 		cache: NewQueue[T](),
@@ -22,8 +22,8 @@ func (q *QueueChannel[T]) Size() int {
 	return q.size
 }
 
-func (q *QueueChannel[T]) Pop() {
-
+func (q *QueueChannel[T]) Chan() chan T {
+	return q.ch
 }
 
 func (q *QueueChannel[T]) Push(elem T) {
@@ -35,12 +35,11 @@ func (q *QueueChannel[T]) Push(elem T) {
 }
 
 func (q *QueueChannel[T]) magic() {
-	for q.Chan != nil {
+	for q.ch != nil {
 		if q.cache.Count() > 0 {
-			q.Chan <- q.cache.Pop()
+			q.ch <- q.cache.Pop()
 		} else {
 			<-q.input
 		}
-
 	}
 }
